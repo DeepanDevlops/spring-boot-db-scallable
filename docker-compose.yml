@@ -1,0 +1,45 @@
+
+services:
+
+  postgres-replica:
+    image: postgres:18
+    container_name: pg-replica
+
+    ports:
+      - "5434:5432"
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: db-scalable
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - replica_data:/var/lib/postgresql/data
+
+    restart: always
+
+  pgbouncer:
+    image: edoburu/pgbouncer
+    container_name: pgbouncer
+
+    ports:
+      - "6432:5432"
+
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+    environment:
+      DB_USER: postgres
+      DB_PASSWORD: root
+      DB_HOST: host.docker.internal
+      DB_PORT: 5433
+      DB_NAME: db-scalable
+
+      POOL_MODE: transaction
+      MAX_CLIENT_CONN: 1000
+      DEFAULT_POOL_SIZE: 50
+
+    restart: always
+
+volumes:
+  replica_data:
